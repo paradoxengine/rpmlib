@@ -1,4 +1,4 @@
-gorpm
+rpmlib
 ===
 
 RPM API language bindings for Go language
