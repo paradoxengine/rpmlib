@@ -1,42 +1,42 @@
-rpmlib
-===
+# rpmlib
 
 RPM API language bindings for Go language
 
 ## Description
+
 RPM API language bindings for Go language.
 
 ## Installation
 
-This package depends on RPM C language API libraries. 
-On RedHat/CentOS environment, you can get RPM development 
+This package depends on RPM C language API libraries.
+On RedHat/CentOS environment, you can get RPM development
 libraries by hitting following command.
 
 ```bash
-$ yum -y install rpm-devel
-$ rpm -qi rpm-devel
+yum -y install rpm-devel
+rpm -qi rpm-devel
 ```
 
 On Ubuntu, you can use the following:
 
 ```bash
-$ sudo apt-get install librpm-dev
+sudo apt-get install librpm-dev
 ```
 
-Please check the rpm-devel/librpm-dev package version. 
+Please check the rpm-devel/librpm-dev package version.
 Currently, my language bindings were tested against RPM lib version 4.14.1.
 
 Then, import to your project
 
 ```bash
-$ export GOROOT=<Your Go language tools path>
-$ export GOPATH=<Your Go project directory>
-$ go get github.com/necomeshi/rpmlib
+export GOROOT=<Your Go language tools path>
+export GOPATH=<Your Go project directory>
+go get github.com/necomeshi/rpmlib
 ```
 
 ## Usages
 
-Currently, following APIs are available. 
+Currently, following APIs are available.
 
 * Searcing and getting installed package information
 
@@ -44,52 +44,52 @@ Currently, following APIs are available.
 package main
 
 import (
-	"os"
-	"fmt"
-	"io"
-	"github.com/necomeshi/rpmlib"
+  "os"
+  "fmt"
+  "io"
+  "github.com/necomeshi/rpmlib"
 )
 
 func main() {
-	ts, err := rpmlib.NewTransactionSet()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot get transaction set: %s\n", err)
-		os.Exit(1)
-	}
+  ts, err := rpmlib.NewTransactionSet()
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "Cannot get transaction set: %s\n", err)
+    os.Exit(1)
+  }
 
-	defer ts.Free()
+  defer ts.Free()
 
-	iter, err := ts.SequencialIterator()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot get iterator: %s\n", err)
-		os.Exit(1)
-	}
+  iter, err := ts.SequencialIterator()
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "Cannot get iterator: %s\n", err)
+    os.Exit(1)
+  }
 
-	defer iter.Free()
+  defer iter.Free()
 
-	for {
-		h, itr_err := iter.Next()
+  for {
+    h, itr_err := iter.Next()
 
-		if itr_err == io.EOF {
-			break	
-		}
-		
-		if itr_err != nil {
-			fmt.Fprintf(os.Stderr, "Cannot get next iterator: %s\n", itr_err)
-			break
-		}
+    if itr_err == io.EOF {
+      break
+    }
 
-		defer h.Free()
+    if itr_err != nil {
+      fmt.Fprintf(os.Stderr, "Cannot get next iterator: %s\n", itr_err)
+      break
+    }
 
-		name, h_err := h.GetString(rpmlib.RPMTAG_NAME)	
-		if h_err != nil {
-			fmt.Fprintf(os.Stderr, "Cannot get name from rpm header: %s\n", h_err)
-			break
-		}
+    defer h.Free()
 
-		fmt.Println(name)
+    name, h_err := h.GetString(rpmlib.RPMTAG_NAME)
+    if h_err != nil {
+      fmt.Fprintf(os.Stderr, "Cannot get name from rpm header: %s\n", h_err)
+      break
+    }
 
-	}
+    fmt.Println(name)
+
+  }
 }
 ```
 
@@ -99,44 +99,45 @@ func main() {
 package main
 
 import (
-	"os"
-	"fmt"
-	"github.com/necomeshi/rpmlib"
+  "os"
+  "fmt"
+  "github.com/necomeshi/rpmlib"
 )
 
 
 func main() {
 
-	if len(os.Args) == 0 {
-		fmt.Fprintf(os.Stderr, "No package name is specified")
-		os.Exit(1)
-	}
+  if len(os.Args) == 0 {
+    fmt.Fprintf(os.Stderr, "No package name is specified")
+    os.Exit(1)
+  }
 
-	ts, err := rpmlib.NewTransactionSet()	
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot get transaction set: %s\n", err)
-		os.Exit(1)
-	}
+  ts, err := rpmlib.NewTransactionSet()
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "Cannot get transaction set: %s\n", err)
+    os.Exit(1)
+  }
 
-	defer ts.Free()
+  defer ts.Free()
 
-	h, err := ts.ReadPackageFile(os.Args[1])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot get package rpm header: %s\n", err)
-		os.Exit(1)
-	}
+  h, err := ts.ReadPackageFile(os.Args[1])
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "Cannot get package rpm header: %s\n", err)
+    os.Exit(1)
+  }
 
-	defer h.Free()
+  defer h.Free()
 
-	name, err := h.GetStringArray(rpmlib.RPMTAG_NAME)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot get package name: %s\n", err)
-	}
+  name, err := h.GetStringArray(rpmlib.RPMTAG_NAME)
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "Cannot get package name: %s\n", err)
+  }
 
-	fmt.Println(name)
+  fmt.Println(name)
 
 }
 ```
 
 ## Author
+
 Necomeshi
