@@ -26,7 +26,7 @@ type Header struct {
 
 func (h *Header) GetString(tag RpmTagVal) (s string, err error) {
 
-	cstring := C.headerGetString(h.rpmheader, C.rpmTag(tag))
+	cstring := C.headerGetString(h.rpmheader, C.rpmTagVal(tag))
 
 	if cstring == nil {
 		err = fmt.Errorf("C.headerGetString: Cannot get tag value")
@@ -44,7 +44,7 @@ func (h *Header) GetStringArray(tag RpmTagVal) (values []string, err error) {
 
 	var sa C.struct_rpmtd_s
 
-	if C.headerGet(h.rpmheader, C.rpmTag(tag), &sa, C.HEADERGET_MINMEM) == 0 {
+	if C.headerGet(h.rpmheader, C.rpmTagVal(tag), &sa, C.HEADERGET_MINMEM) == 0 {
 		err = fmt.Errorf("C.headerGet: Cannot get tag value")
 		return
 	}
@@ -74,7 +74,7 @@ func (h *Header) GetUint16(tag RpmTagVal) (value uint16, err error) {
 
 	var sa C.struct_rpmtd_s
 
-	if C.headerGet(h.rpmheader, C.rpmTag(tag), &sa, C.HEADERGET_MINMEM) == 0 {
+	if C.headerGet(h.rpmheader, C.rpmTagVal(tag), &sa, C.HEADERGET_MINMEM) == 0 {
 		err = fmt.Errorf("C.headerGet: Cannot get tag value")
 		return
 	}
@@ -97,7 +97,7 @@ func (h *Header) GetUint32(tag RpmTagVal) (value uint32, err error) {
 
 	var sa C.struct_rpmtd_s
 
-	if C.headerGet(h.rpmheader, C.rpmTag(tag), &sa, C.HEADERGET_MINMEM) == 0 {
+	if C.headerGet(h.rpmheader, C.rpmTagVal(tag), &sa, C.HEADERGET_MINMEM) == 0 {
 		err = fmt.Errorf("C.headerGet: Cannot get tag value")
 		return
 	}
@@ -120,7 +120,7 @@ func (h *Header) GetUint32Array(tag RpmTagVal) (values []uint32, err error) {
 
 	var sa C.struct_rpmtd_s
 
-	if C.headerGet(h.rpmheader, C.rpmTag(tag), &sa, C.HEADERGET_MINMEM) == 0 {
+	if C.headerGet(h.rpmheader, C.rpmTagVal(tag), &sa, C.HEADERGET_MINMEM) == 0 {
 		err = fmt.Errorf("C.headerGet: Cannot get tag value")
 		return
 	}
@@ -148,12 +148,11 @@ func (h *Header) GetUint32Array(tag RpmTagVal) (values []uint32, err error) {
 	return
 }
 
-
 func (h *Header) GetUint64(tag RpmTagVal) (value uint64, err error) {
 
 	var sa C.struct_rpmtd_s
 
-	if C.headerGet(h.rpmheader, C.rpmTag(tag), &sa, C.HEADERGET_MINMEM) == 0 {
+	if C.headerGet(h.rpmheader, C.rpmTagVal(tag), &sa, C.HEADERGET_MINMEM) == 0 {
 		err = fmt.Errorf("C.headerGet: Cannot get tag value")
 		return
 	}
@@ -176,7 +175,7 @@ func (h *Header) GetUint64Array(tag RpmTagVal) (values []uint64, err error) {
 
 	var sa C.struct_rpmtd_s
 
-	if C.headerGet(h.rpmheader, C.rpmTag(tag), &sa, C.HEADERGET_MINMEM) == 0 {
+	if C.headerGet(h.rpmheader, C.rpmTagVal(tag), &sa, C.HEADERGET_MINMEM) == 0 {
 		err = fmt.Errorf("C.headerGet: Cannot get tag value")
 		return
 	}
@@ -242,45 +241,6 @@ func (iter *Iterator) Free() {
 }
 
 //////////////////////////////////////////
-// Database
-//////////////////////////////////////////
-type Database struct {
-	rpmdb C.rpmdb
-}
-
-func OpenDatabase() (db *Database, err error) {
-	db = new(Database)
-
-	prefix := C.CString("")
-
-	if C.rpmdbOpen(prefix, &db.rpmdb, C.O_RDWR, 0666) != 0 {
-		err = fmt.Errorf("C.rpmdbOpen: Cannot open database")
-	}
-
-	C.free(unsafe.Pointer(prefix))
-
-	return
-}
-
-func (db *Database) SequencialIterator() (iter *Iterator, err error) {
-	iter = new(Iterator)
-
-	iter.mi = C.rpmdbInitIterator(db.rpmdb, C.RPMDBI_PACKAGES, nil, 0)
-	if iter.mi == nil {
-		err = fmt.Errorf("Cannot get iterator")
-	}
-
-	return
-}
-
-func (db *Database) Close() (err error) {
-	if C.rpmdbClose(db.rpmdb) != 0 {
-		err = fmt.Errorf("C.rpmdbClose: Cannot close database")
-	}
-	return
-}
-
-//////////////////////////////////////////
 // Transaction
 //////////////////////////////////////////
 
@@ -310,7 +270,7 @@ func (ts *TransactionSet) SequencialIterator() (iter *Iterator, err error) {
 	return
 }
 
-func (ts *TransactionSet) ReadPackageFile(name string) (header *Header, err error) {
+func (ts *TransactionSet) ReadPackageFile(name string, verifySignature bool) (header *Header, err error) {
 	cname := C.CString(name)
 	cmode := C.CString("r.ufdio")
 
@@ -324,17 +284,19 @@ func (ts *TransactionSet) ReadPackageFile(name string) (header *Header, err erro
 
 	header = new(Header)
 	ret := C.rpmReadPackageFile(ts.ts, fd, cname, &header.rpmheader)
-	if ret != C.RPMRC_OK {
+
+	if ret == C.RPMRC_OK ||
+		(!verifySignature && (ret == C.RPMRC_NOTTRUSTED || ret == C.RPMRC_NOKEY)) {
+		C.Fclose(fd)
 		C.free(unsafe.Pointer(cname))
 		C.free(unsafe.Pointer(cmode))
-		return nil, fmt.Errorf("C.rpmReadPackageFile: Error")
+		return
 	}
 
-	C.Fclose(fd)
+	// Else, we have a problem.
 	C.free(unsafe.Pointer(cname))
 	C.free(unsafe.Pointer(cmode))
-
-	return
+	return nil, fmt.Errorf("C.rpmReadPackageFile: Error")
 }
 
 func (ts *TransactionSet) Free() {

@@ -17,8 +17,14 @@ $ yum -y install rpm-devel
 $ rpm -qi rpm-devel
 ```
 
-Please check the rpm-devel package version. 
-Currently, my language bindings support RPM version 4.8.0 only!
+On Ubuntu, you can use the following:
+
+```bash
+$ sudo apt-get install librpm-dev
+```
+
+Please check the rpm-devel/librpm-dev package version. 
+Currently, my language bindings were tested against RPM lib version 4.14.1.
 
 Then, import to your project
 
