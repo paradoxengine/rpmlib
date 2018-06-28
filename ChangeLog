@@ -1,7 +1,8 @@
 -------------------------------------
 Version 0.0.2 2018-06-29
 - Updated libraries to version 4.14.1
-- Removed open and close DB actions that are no longer needed
+- Removed open and close DB actions that are no longer needed.
+- Add support for macros,  setting dbpath and dump current config (useful for debugging).
 
 Version 0.0.1 2017-04-01
 - Initial commit
