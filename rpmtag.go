@@ -5,6 +5,7 @@ package rpmlib
 */
 import "C"
 
+// RpmTagVal is the Go version of rpmTag
 type RpmTagVal C.rpmTag
 
 const (
