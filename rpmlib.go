@@ -9,13 +9,15 @@ package rpmlib
 #include <rpm/header.h>
 #include <rpm/rpmlib.h>
 #include <rpm/rpmdb.h>
+#include <rpm/rpmmacro.h>
 #include <rpm/rpmts.h>
 #include <rpm/rpmtag.h>
 */
 import "C"
-import "unsafe"
 import "fmt"
 import "io"
+import "os"
+import "unsafe"
 
 //////////////////////////////////////////
 // Header
@@ -303,6 +305,31 @@ func (ts *TransactionSet) Free() {
 	// Opened database will be closed in here
 	C.rpmtsFree(ts.ts)
 }
+
+//////////////////////////////////////////
+// Macros & helpers
+//////////////////////////////////////////
+
+// DefineGlobalMacro sets a priority 0 macro.
+func DefineGlobalMacro(macro string) {
+	// Defines a macro in the environment with the highest priority.
+	C.rpmDefineMacro(nil, C.CString(macro), 0)
+}
+
+// SetDbPath changes the path the rpmLib will use to look for the DB.
+// Note that this is the DIRECTORY where the Packages file resides.
+func SetDbPath(path string) {
+	DefineGlobalMacro("_dbpath " + path)
+}
+
+// ShowRC writes to a file the full RPM environment configuration.
+func ShowRC(f *os.File) {
+	C.rpmShowRC(C.fdopen(C.int(f.Fd()), C.CString("w*")))
+}
+
+//////////////////////////////////////////
+// Macros
+//////////////////////////////////////////
 
 func init() {
 	C.rpmReadConfigFiles(nil, nil)

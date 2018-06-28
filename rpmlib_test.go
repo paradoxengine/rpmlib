@@ -1,7 +1,12 @@
 package rpmlib
 
 import (
+	"io/ioutil"
+	"os"
+	"strings"
 	"testing"
+
+	"github.com/necomeshi/rpmlib"
 	//	"fmt"
 )
 
@@ -56,4 +61,22 @@ func TestTransactionIterator(t *testing.T) {
 	iter.Free()
 
 	ts.Free()
+}
+
+func TestShowRC(t *testing.T) {
+	f, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(f.Name())
+
+	rpmlib.ShowRC(f)
+	dat, err := ioutil.ReadFile(f.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := string(dat)
+	if !(strings.Contains(s, "dbpath")) {
+		t.Fatal("RC dump did not contain dbpath")
+	}
 }
