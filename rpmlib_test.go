@@ -1,3 +1,4 @@
+// Copyright 2018 necomeshi, All Rights Reserved.
 package rpmlib
 
 import (
@@ -78,5 +79,17 @@ func TestShowRC(t *testing.T) {
 	s := string(dat)
 	if !(strings.Contains(s, "dbpath")) {
 		t.Fatal("RC dump did not contain dbpath")
+	}
+
+	_, err = h.GetString(RPMTAG_SUMMARY)	
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	iter.Free()
+
+	err = db.Close()
+	if err != nil {
+		t.Fatal(err)
 	}
 }
