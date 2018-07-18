@@ -134,3 +134,9 @@ func main() {
 
 ## Author
 Necomeshi
+
+## Copyright
+
+Copyright (c) 2018 necomeshi https://github.com/necomesh
+
+see ./LICENSE

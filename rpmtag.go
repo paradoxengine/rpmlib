@@ -1,3 +1,4 @@
+// Copyrigt 2018 necomeshi, All Rights Reserved.
 package rpmlib
 
 /*

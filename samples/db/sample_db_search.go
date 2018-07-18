@@ -1,9 +1,12 @@
+// Copyrigt 2018 necomeshi, All Rights Reserved.
+
 package main
 
 import (
-	"os"
 	"fmt"
 	"io"
+	"os"
+
 	"github.com/necomeshi/rpmlib"
 )
 
@@ -28,9 +31,9 @@ func main() {
 		h, itr_err := iter.Next()
 
 		if itr_err == io.EOF {
-			break	
+			break
 		}
-		
+
 		if itr_err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot get next iterator: %s\n", itr_err)
 			break
@@ -38,7 +41,7 @@ func main() {
 
 		defer h.Free()
 
-		name, h_err := h.GetString(rpmlib.RPMTAG_NAME)	
+		name, h_err := h.GetString(rpmlib.RPMTAG_NAME)
 		if h_err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot get name from rpm header: %s\n", h_err)
 			break

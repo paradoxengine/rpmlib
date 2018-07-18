@@ -1,11 +1,13 @@
+// Copyrigt 2018 necomeshi, All Rights Reserved.
+
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
+
 	"github.com/necomeshi/rpmlib"
 )
-
 
 func main() {
 
@@ -14,7 +16,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	ts, err := rpmlib.NewTransactionSet()	
+	ts, err := rpmlib.NewTransactionSet()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Cannot get transaction set: %s\n", err)
 		os.Exit(1)
